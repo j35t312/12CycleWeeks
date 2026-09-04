@@ -10,7 +10,13 @@ import {
 } from '../utils'
 import { getCycleDayOffset } from '../patterns'
 import { columnLetterToIndex, getCellValue } from './parseWorkbook'
-import { MAPPABLE_SHIFTS, type ApplyAnalystResult, type MappableShift, type ParsedSheet } from './types'
+import {
+  MAPPABLE_SHIFTS,
+  type AnalystOption,
+  type ApplyAnalystResult,
+  type MappableShift,
+  type ParsedSheet,
+} from './types'
 
 export function normalizeShift(value: string): string {
   return String(value ?? '').trim().toUpperCase()
@@ -34,20 +40,26 @@ export function isIntegerId(value: string): boolean {
   return /^\d+$/.test(value.trim())
 }
 
-export function listAnalystIds(
+export function listAnalystOptions(
   sheet: ParsedSheet,
   importConfig: RotationImportConfig
-): string[] {
+): AnalystOption[] {
   const idCol = columnLetterToIndex(importConfig.idColumn)
-  const ids = new Set<string>()
+  const nameCol = columnLetterToIndex(importConfig.nameColumn)
+  const options = new Map<string, AnalystOption>()
   const startRow = importConfig.dataStartRow - 1
 
   for (let rowIndex = startRow; rowIndex < sheet.rows.length; rowIndex++) {
     const id = getCellValue(sheet.rows, rowIndex, idCol)
-    if (id && isIntegerId(id)) ids.add(id.trim())
+    if (!id || !isIntegerId(id)) continue
+    // Duplicate IDs keep the first row, matching findAnalystRowIndex.
+    if (options.has(id)) continue
+    options.set(id, { id, name: getCellValue(sheet.rows, rowIndex, nameCol) })
   }
 
-  return [...ids].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  return [...options.values()].sort((a, b) =>
+    a.id.localeCompare(b.id, undefined, { numeric: true })
+  )
 }
 
 export function findAnalystRowIndex(

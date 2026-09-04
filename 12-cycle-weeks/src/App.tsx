@@ -294,7 +294,7 @@ function App() {
 
       {!canSwap && (
         <p className="calendar-hint">
-          Load a rotation file and select a Line ID to edit swap days.
+          Load a rotation file and select an employee to edit swap days.
         </p>
       )}
 

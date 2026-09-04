@@ -10,6 +10,12 @@ export type ParsedSheet = {
   rows: string[][]
 }
 
+/** A selectable rotation line. `name` is empty when the line is unassigned. */
+export type AnalystOption = {
+  id: string
+  name: string
+}
+
 export type { RotationImportConfig }
 
 export type ApplyAnalystResult = {

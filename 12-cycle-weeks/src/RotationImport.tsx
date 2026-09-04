@@ -3,16 +3,26 @@ import { rotationImportConfig, twelveCycleConfig } from './config'
 import {
   applyAnalystShiftsToCalendar,
   getAnalystCycleDays,
-  listAnalystIds,
+  listAnalystOptions,
 } from './excel/analystRotation'
 import { parseWorkbookFile } from './excel/parseWorkbook'
-import { MAPPABLE_SHIFTS, type MappableShift, type ParsedSheet } from './excel/types'
+import {
+  MAPPABLE_SHIFTS,
+  type AnalystOption,
+  type MappableShift,
+  type ParsedSheet,
+} from './excel/types'
 import type { ShiftLabelMap, SwapSelectionMap } from './utils'
 
 interface RotationImportProps {
   onApply: (selections: SwapSelectionMap, shiftLabels: ShiftLabelMap) => void
   /** Emits the selected analyst's per-cycle shift codes (null when none). */
   onRotationChange: (cycleDays: string[] | null) => void
+}
+
+/** Vacant lines have no employee, so the line number stands alone. */
+function formatAnalystLabel({ id, name }: AnalystOption): string {
+  return `${id} — ${name || 'Vacant'}`
 }
 
 function createDefaultCheckedShifts(): Record<MappableShift, boolean> {
@@ -35,8 +45,8 @@ function RotationImport({ onApply, onRotationChange }: RotationImportProps) {
   const [checkedShifts, setCheckedShifts] = useState(createDefaultCheckedShifts)
   const [applyMessage, setApplyMessage] = useState('')
 
-  const analystIds = useMemo(
-    () => (sheet ? listAnalystIds(sheet, rotationImportConfig) : []),
+  const analystOptions = useMemo(
+    () => (sheet ? listAnalystOptions(sheet, rotationImportConfig) : []),
     [sheet]
   )
 
@@ -149,7 +159,7 @@ function RotationImport({ onApply, onRotationChange }: RotationImportProps) {
         <>
           <div className="rotation-import__row">
             <label className="rotation-import__label" htmlFor="analyst-id">
-              Rotation ID (Column {rotationImportConfig.idColumn})
+              Employee (Column {rotationImportConfig.nameColumn})
             </label>
             <select
               id="analyst-id"
@@ -160,10 +170,10 @@ function RotationImport({ onApply, onRotationChange }: RotationImportProps) {
                 setApplyMessage('')
               }}
             >
-              <option value="">Select ID…</option>
-              {analystIds.map((id) => (
-                <option key={id} value={id}>
-                  {id}
+              <option value="">Select employee…</option>
+              {analystOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {formatAnalystLabel(option)}
                 </option>
               ))}
             </select>

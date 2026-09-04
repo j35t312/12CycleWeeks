@@ -17,12 +17,15 @@ export const twelveCycleConfig: CycleConfig = {
 
 export type RotationImportConfig = {
   idColumn: string
+  /** Employee name shown for each line; blank on vacant lines. */
+  nameColumn: string
   firstDayColumn: string
   dataStartRow: number
 }
 
 export const rotationImportConfig: RotationImportConfig = {
   idColumn: 'J',
+  nameColumn: 'B',
   firstDayColumn: 'K',
   dataStartRow: 3,
 }
